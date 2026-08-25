@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: reentry-postgres
+    environment:
+      POSTGRES_DB: reentry_db
+      POSTGRES_USER: reentry_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U reentry_user -d reentry_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - reentry-network
+
+  reentry-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: reentry-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/reentry_db
+      SPRING_DATASOURCE_USERNAME: reentry_user
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-changeme}
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-key-change-in-production}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-3600000}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+    ports:
+      - "8080:8080"
+    networks:
+      - reentry-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  reentry-network:
+    driver: bridge
