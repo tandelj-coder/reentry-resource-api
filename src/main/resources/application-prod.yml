@@ -1,0 +1,17 @@
+spring:
+  jpa:
+    show-sql: false
+  flyway:
+    baseline-on-migrate: false
+
+server:
+  ssl:
+    enabled: true
+    key-store-type: PKCS12
+
+logging:
+  level:
+    com.reentry: INFO
+    org.springframework: WARN
+  file:
+    name: /var/log/reentry-api/application.log
