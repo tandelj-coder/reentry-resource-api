@@ -290,17 +290,6 @@ src/main/resources/
     ├── V4__create_referrals.sql
     ├── V5__create_followups.sql
     └── V6__create_audit_logs.sql
-
-src/test/java/com/reentry/
-├── auth/AuthServiceTest.java
-├── auth/AuthControllerTest.java
-├── client/ClientServiceTest.java
-├── client/ClientControllerTest.java
-├── program/ProgramServiceTest.java
-├── program/ProgramControllerTest.java
-├── referral/ReferralServiceTest.java
-├── referral/ReferralIntegrationTest.java
-└── followup/FollowUpServiceTest.java
 ```
 
 ## Database Schema
