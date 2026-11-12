@@ -3,6 +3,7 @@ package com.reentry.common.exception;
 import com.reentry.common.dto.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -82,6 +83,28 @@ public class GlobalExceptionHandler {
                 .path(request.getDescription(false).replace("uri=", ""))
                 .build();
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
+    /**
+     * FIX: Explicit handler for @PreAuthorize denials.
+     *
+     * Without this, AccessDeniedException falls through to the generic Exception
+     * handler below and returns 500 Internal Server Error — masking the true denial
+     * reason. This handler ensures the correct 403 Forbidden is returned.
+     * See FINDINGS.md for the full root-cause analysis and test coverage.
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDenied(
+            AccessDeniedException ex,
+            WebRequest request) {
+        ErrorResponse error = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(HttpStatus.FORBIDDEN.value())
+                .error("Forbidden")
+                .message("You do not have permission to access this resource")
+                .path(request.getDescription(false).replace("uri=", ""))
+                .build();
+        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(InvalidStatusTransitionException.class)
